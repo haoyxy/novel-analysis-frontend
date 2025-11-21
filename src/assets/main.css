@@ -1,0 +1,45 @@
+@import './base.css';
+
+:root {
+  --brand-bg: radial-gradient(circle at 20% 20%, #2ee6ff, transparent 55%),
+    radial-gradient(circle at 80% 0%, #755bea, transparent 45%),
+    linear-gradient(135deg, #050c1a 0%, #0c192c 40%, #020810 100%);
+  --card-blur: rgba(255, 255, 255, 0.1);
+  --card-border: rgba(255, 255, 255, 0.2);
+  --text-strong: #f4f6ff;
+  --text-muted: #b0c3ff;
+  --brand-primary: #48e5c2;
+  --brand-secondary: #758bff;
+}
+
+body {
+  margin: 0;
+  color: var(--text-strong);
+  background: #030711;
+}
+
+#app {
+  min-height: 100vh;
+  background: var(--brand-bg);
+  background-attachment: fixed;
+  font-weight: 400;
+}
+
+a {
+  color: var(--brand-primary);
+  text-decoration: none;
+}
+
+.glass-panel {
+  background: var(--card-blur);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 20px 60px rgba(5, 11, 40, 0.45);
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, var(--brand-primary), var(--brand-secondary));
+  -webkit-background-clip: text;
+  color: transparent;
+}
