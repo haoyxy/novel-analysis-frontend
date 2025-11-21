@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8081/api'
+const API_BASE = 'http://localhost:8081'
 export const TOKEN_KEY = 'novel_jwt_token'
 
 const apiClient = axios.create({
@@ -18,6 +18,16 @@ export const setAuthToken = (token) => {
   }
 }
 
+// Attach token for every request if it exists (covers refreshes and manual requests)
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem(TOKEN_KEY)
+  if (token && !config.headers?.Authorization) {
+    config.headers = config.headers || {}
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
 // bootstrap token if it already exists
 setAuthToken(localStorage.getItem(TOKEN_KEY) || '')
 
@@ -32,18 +42,28 @@ apiClient.interceptors.response.use(
 const unwrap = (response) => response?.data?.data ?? response?.data
 
 // auth
-export const login = async (payload) => unwrap(await apiClient.post('/auth/login', payload))
-export const register = async (payload) => unwrap(await apiClient.post('/auth/register', payload))
+export const login = async (payload) =>
+  unwrap(await apiClient.post('/api/auth/login', payload))
+export const register = async (payload) =>
+  unwrap(
+    await apiClient.post('/api/auth/register', {
+      ...payload,
+      email: payload.email || `${payload.username}@example.com`
+    })
+  )
 
 // user profile
-export const fetchCurrentUser = async () => unwrap(await apiClient.get('/users/me'))
-export const updateCurrentUser = async (payload) => unwrap(await apiClient.put('/users/me', payload))
+export const fetchCurrentUser = async () => unwrap(await apiClient.get('/api/users/me'))
+export const updateCurrentUser = async (payload) =>
+  unwrap(await apiClient.put('/api/users/me', payload))
 
 // works
-export const listWorks = async (params = {}) => unwrap(await apiClient.get('/works', { params }))
-export const fetchWork = async (id) => unwrap(await apiClient.get(`/works/${id}`))
-export const deleteWork = async (id) => unwrap(await apiClient.delete(`/works/${id}`))
-export const updateWork = async (id, payload) => unwrap(await apiClient.put(`/works/${id}`, payload))
+export const listWorks = async (params = {}) =>
+  unwrap(await apiClient.get('/api/works', { params }))
+export const fetchWork = async (id) => unwrap(await apiClient.get(`/api/works/${id}`))
+export const deleteWork = async (id) => unwrap(await apiClient.delete(`/api/works/${id}`))
+export const updateWork = async (id, payload) =>
+  unwrap(await apiClient.put(`/api/works/${id}`, payload))
 
 export const uploadWork = async (payload) => {
   const formData = new FormData()
@@ -60,13 +80,14 @@ export const uploadWork = async (payload) => {
     formData.append('content', payload.content)
   }
   return unwrap(
-    await apiClient.post('/works', formData, {
+    await apiClient.post('/api/works', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
   )
 }
 
-export const reanalyzeWork = async (id) => unwrap(await apiClient.post(`/analyze/works/${id}`))
+export const reanalyzeWork = async (id) =>
+  unwrap(await apiClient.post(`/api/analyze/works/${id}`))
 
 // analysis
 export const analyzeText = async ({ file, text }) => {
@@ -78,26 +99,27 @@ export const analyzeText = async ({ file, text }) => {
     formData.append('file', blob, 'text.txt')
   }
   return unwrap(
-    await apiClient.post('/analyze/text', formData, {
+    await apiClient.post('/api/analyze/text', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
   )
 }
 
 // characters
-export const listCharacters = async () => unwrap(await apiClient.get('/characters'))
+export const listCharacters = async () => unwrap(await apiClient.get('/api/characters'))
 export const saveCharacter = async (payload) =>
   payload.id
-    ? unwrap(await apiClient.put(`/characters/${payload.id}`, payload))
-    : unwrap(await apiClient.post('/characters', payload))
-export const removeCharacter = async (id) => unwrap(await apiClient.delete(`/characters/${id}`))
+    ? unwrap(await apiClient.put(`/api/characters/${payload.id}`, payload))
+    : unwrap(await apiClient.post('/api/characters', payload))
+export const removeCharacter = async (id) =>
+  unwrap(await apiClient.delete(`/api/characters/${id}`))
 
 // worlds
-export const listWorlds = async () => unwrap(await apiClient.get('/worlds'))
+export const listWorlds = async () => unwrap(await apiClient.get('/api/worlds'))
 export const saveWorld = async (payload) =>
   payload.id
-    ? unwrap(await apiClient.put(`/worlds/${payload.id}`, payload))
-    : unwrap(await apiClient.post('/worlds', payload))
-export const removeWorld = async (id) => unwrap(await apiClient.delete(`/worlds/${id}`))
+    ? unwrap(await apiClient.put(`/api/worlds/${payload.id}`, payload))
+    : unwrap(await apiClient.post('/api/worlds', payload))
+export const removeWorld = async (id) => unwrap(await apiClient.delete(`/api/worlds/${id}`))
 
 export default apiClient
